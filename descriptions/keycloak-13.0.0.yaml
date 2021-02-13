@@ -12,27 +12,33 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 servers:
-- url: "{protocol}://{hostname}/auth"
-  description: Keycloak Server URL
-  variables:
-    protocol:
-      default: http
-      description: Communication protocol
-    hostname:
-      default: localhost
-      description: Self-hosted Server
 - url: "{protocol}://{hostname}/auth/realms/{realm}"
   description: Realm HTTP address
   variables:
     protocol:
-      default: http
-      description: Communication protocol
+      enum:
+        - http
+        - https
+      default: https
+      description: Communication Protocol
     hostname:
       default: localhost
-      description: Self-hosted server
+      description: Self-hosted Server
     realm:
       default: master
-      description: Realm name
+      description: Realm Name
+- url: "{protocol}://{hostname}/auth"
+  description: Keycloak Server URL
+  variables:
+    protocol:
+      enum:
+        - http
+        - https
+      default: https
+      description: Communication Protocol
+    hostname:
+      default: localhost
+      description: Self-hosted Server
 paths:
   /account/applications:
     summary: Applications
@@ -892,11 +898,29 @@ components:
                 error: HTTP 401 Unauthorized
       description: Expired or invalid token.
   securitySchemes:
-    access_token:
-      flows: {}
+    bearerAuth:
+      type: http
+      description: Access Token 
+      scheme: bearer
+      bearerFormat: JWT  
+    oauth2AuthCode:
       type: oauth2
+      description: OAuth Grant Code Flow 
+      flows: 
+        authorizationCode:
+          authorizationUrl: /auth/realms/{realm}/protocol/openid-connect/auth
+          tokenUrl: /auth/realms/{realm}/protocol/openid-connect/token
+          refreshUrl: /auth/realms/{realm}/protocol/openid-connect/token
+          scopes: {}
+#          additionalQueryStringParams: 
+#            realm: master
+#
+#    openId:
+#      type: openIdConnect
+#      openIdConnectUrl: "https://play.monitoringartist.com/auth/realms/master/.well-known/openid-configuration"
 security:
-- access_token: []
+- bearerAuth: []
+- oauth2AuthCode: []
 tags:
 - name: Account
   description: Account REST API
